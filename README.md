@@ -1,0 +1,2 @@
+# FridgeContents
+Fullstack practice project
