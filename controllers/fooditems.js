@@ -20,7 +20,6 @@ fooditemsRouter.post('/', async (request, response) => {
 		const decodedToken = jwt.verify(token, process.env.SECRET)
 		const body = request.body
 
-		console.log(token, decodedToken)
 		if (!token || !decodedToken.id) {
 			return response.status(400).send({ error: 'Missing or invalid token' })
 		}
@@ -45,7 +44,7 @@ fooditemsRouter.post('/', async (request, response) => {
 			user: user._id
 		})
 
-		const saved = fooditem.save()
+		const saved = await fooditem.save()
 
 		user.fooditems = user.fooditems.concat(saved._id)
 		await user.save()
@@ -81,10 +80,10 @@ fooditemsRouter.delete('/:id', async (request, response) => {
 		}
 
 		const user = await User.findById(toBeRemoved.user)
-		user.fooditems = user.fooditems.filter(f => f !== toBeRemoved._id)
+		user.fooditems = user.fooditems.filter(f => f.toString() !== toBeRemoved._id.toString())
 
-		user.save()
-		toBeRemoved.remove()
+		await user.save()
+		await toBeRemoved.remove()
 
 		response.status(204).end()
 	} catch (exception) {
@@ -113,7 +112,7 @@ fooditemsRouter.put('/:id', async (request, response) => {
 			return response.status(400).send({ error: `Malformatted id: ${request.params.id}` })
 		}
 
-		if (oldItem.user !== decodedToken.id) {
+		if (oldItem.user.toString() !== decodedToken.id.toString()) {
 			return response.status(401).send({ error: 'Not authorised' })
 		}
 
@@ -126,7 +125,7 @@ fooditemsRouter.put('/:id', async (request, response) => {
 		}
 
 		const options = { new: true }
-		const newItem = await oldItem.update(updatedItem, options)
+		const newItem = await Fooditem.findByIdAndUpdate(oldItem._id, updatedItem, options)
 
 		response.status(200).json(Fooditem.format(newItem))
 	} catch (exception) {
