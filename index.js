@@ -27,10 +27,18 @@ app.set('json spaces', 4)
 app.use(cors())
 app.use(express.static('build'))
 app.use(middleware.tokenExtractor)
+app.use(middleware.logger)
+
 app.use('/api/fooditems', fooditemsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 
-app.listen(config.port, () => {
+const server = http.createServer(app)
+
+server.listen(config.port, () => {
 	console.log(`Server running on port ${config.port}`)
+})
+
+server.on('close', () => {
+	mongoose.connection.close()
 })
