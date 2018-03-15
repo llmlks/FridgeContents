@@ -9,3 +9,4 @@ Date|Hours|Explanation
 ---|---|---
 13.03|3|Initialisation of project
 14.03|6.5|Setting up frontend, logic to support logging in/out, CRUD for food items
+15.0.3|2|Change in schema, modifications to backend, started changes to frontend
