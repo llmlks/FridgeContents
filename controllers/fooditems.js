@@ -2,6 +2,7 @@ const fooditemsRouter = require('express').Router()
 const Fooditem = require('../models/fooditem')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
+const Fridge = require('../models/fridge')
 
 fooditemsRouter.get('/', async (request, response) => {
 	try {
@@ -28,26 +29,37 @@ fooditemsRouter.post('/', async (request, response) => {
 			return response.status(400).send({ error: 'Name must be defined' })
 		}
 
-		if (!body.weight && !body.volume && !body.pieces) {
+		if (!body.amount || !body.unit) {
 			return response.status(400).send({
-				error: 'At least one measurement must be set to a positive value'
+				error: 'Amount and unit must be set'
 			})
 		}
 
-		const user = await User.findById(decodedToken.id)
+		const fridge = await Fridge.findById(body.fridge)
+		const fridgeUser = fridge.users.find(u => u._id.toString() === decodedToken.id.toString())
+
+		if (!fridgeUser) {
+			return response.status(401).send({ error: 'Not authorised' })
+		}
+
+		let bought = body.bought
+		if (!bought) {
+			bought = new Date()
+		}
 
 		const fooditem = new Fooditem({
 			name: body.name,
-			weight: body.weight,
-			volume: body.volume,
-			pieces: body.pieces,
-			user: user._id
+			amount: body.amount,
+			unit: body.unit,
+			bought: bought,
+			opened: body.opened,
+			user: body.fridge
 		})
 
 		const saved = await fooditem.save()
 
-		user.fooditems = user.fooditems.concat(saved._id)
-		await user.save()
+		fridge.fooditems = fridge.fooditems.concat(saved._id)
+		await fridge.save()
 
 		response.status(201).json(Fooditem.format(saved))
 	} catch (exception) {
@@ -75,14 +87,16 @@ fooditemsRouter.delete('/:id', async (request, response) => {
 			return response.status(400).send({ error: `Malformatted id: ${request.params.id}` })
 		}
 
-		if (toBeRemoved.user.toString() !== decodedToken.id.toString()) {
+		const fridge = await Fridge.findById(toBeRemoved.fridge)
+		const fridgeUser = fridge.users.find(u => u._id.toString() === decodedToken.id.toString())
+
+		if (!fridgeUser) {
 			return response.status(401).send({ error: 'Not authorised' })
 		}
 
-		const user = await User.findById(toBeRemoved.user)
-		user.fooditems = user.fooditems.filter(f => f.toString() !== toBeRemoved._id.toString())
+		fridge.fooditems = fridge.fooditems.filter(f => f.toString() !== toBeRemoved._id.toString())
 
-		await user.save()
+		await fridge.save()
 		await toBeRemoved.remove()
 
 		response.status(204).end()
@@ -112,16 +126,20 @@ fooditemsRouter.put('/:id', async (request, response) => {
 			return response.status(400).send({ error: `Malformatted id: ${request.params.id}` })
 		}
 
-		if (oldItem.user.toString() !== decodedToken.id.toString()) {
+		const fridge = await Fridge.findById(oldItem.fridge)
+		const fridgeUser = fridge.users.find(u => u._id.toString() === decodedToken.id.toString())
+
+		if (!fridgeUser) {
 			return response.status(401).send({ error: 'Not authorised' })
 		}
 
 		const updatedItem = {
 			name: body.name,
-			weight: body.weight,
-			volume: body.volume,
-			pieces: body.pieces,
-			user: oldItem.user
+			amount: body.amount,
+			unit: body.unit,
+			bought: body.bought,
+			opened: body.opened,
+			fridge: body.fridge
 		}
 
 		const options = { new: true }

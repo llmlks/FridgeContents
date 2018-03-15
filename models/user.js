@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
 	name: String,
 	username: String,
 	passwordHash: String,
-	fooditems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fooditem' }]
+	fridges: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fridge' }]
 })
 
 userSchema.statics.format = (user) => {
@@ -12,7 +12,7 @@ userSchema.statics.format = (user) => {
 		id: user._id,
 		name: user.name,
 		username: user.username,
-		fooditems: user.fooditems
+		fridges: user.fridges
 	}
 }
 

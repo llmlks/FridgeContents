@@ -33,7 +33,7 @@ usersRouter.post('/', async (request, response) => {
 			name: body.name,
 			username: body.username,
 			passwordHash,
-			foodItems: []
+			fridges: []
 		})
 
 		const saved = await user.save()

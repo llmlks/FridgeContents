@@ -9,6 +9,7 @@ const fooditemsRouter = require('./controllers/fooditems')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const middleware = require('./utils/middleware')
+const fridgeRouter = require('./controllers/fridges')
 
 const connectDB = async () => {
 	try {
@@ -32,6 +33,7 @@ app.use(middleware.logger)
 app.use('/api/fooditems', fooditemsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
+app.use('/api/fridges', fridgeRouter)
 
 const server = http.createServer(app)
 
