@@ -6,7 +6,7 @@ const Fooditem = require('../models/fooditem')
 
 fridgeRouter.get('/', async (request, response) => {
 	try {
-		const fridges = await Fridge.find({ })
+		const fridges = await Fridge.find({ }).populate('users', { name: 1, _id: 1 })
 
 		response.status(200).json(fridges.map(Fridge.format))
 	} catch (exception) {
