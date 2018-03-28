@@ -4,7 +4,8 @@ const userSchema = new mongoose.Schema({
 	name: String,
 	username: String,
 	passwordHash: String,
-	fridges: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fridge' }]
+	fridges: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fridge' }],
+	defaultFridge: { type: mongoose.Schema.Types.ObjectId, ref: 'Fridge' }
 })
 
 userSchema.statics.format = (user) => {
@@ -12,7 +13,8 @@ userSchema.statics.format = (user) => {
 		id: user._id,
 		name: user.name,
 		username: user.username,
-		fridges: user.fridges
+		fridges: user.fridges,
+		defaultFridge: user.defaultFridge
 	}
 }
 

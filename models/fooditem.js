@@ -16,6 +16,7 @@ fooditemSchema.statics.format = (fooditem) => {
 		amount: fooditem.amount,
 		unit: fooditem.unit,
 		bought: fooditem.bought,
+		opened: fooditem.opened,
 		fridge: fooditem.fridge
 	}
 }

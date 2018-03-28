@@ -36,7 +36,7 @@ fooditemsRouter.post('/', async (request, response) => {
 		}
 
 		const fridge = await Fridge.findById(body.fridge)
-		const fridgeUser = fridge.users.find(u => u._id.toString() === decodedToken.id.toString())
+		const fridgeUser = fridge.users.find(u => u.toString() === decodedToken.id.toString())
 
 		if (!fridgeUser) {
 			return response.status(401).send({ error: 'Not authorised' })
@@ -53,7 +53,7 @@ fooditemsRouter.post('/', async (request, response) => {
 			unit: body.unit,
 			bought: bought,
 			opened: body.opened,
-			user: body.fridge
+			fridge: body.fridge
 		})
 
 		const saved = await fooditem.save()
@@ -88,7 +88,7 @@ fooditemsRouter.delete('/:id', async (request, response) => {
 		}
 
 		const fridge = await Fridge.findById(toBeRemoved.fridge)
-		const fridgeUser = fridge.users.find(u => u._id.toString() === decodedToken.id.toString())
+		const fridgeUser = fridge.users.find(u => u.toString() === decodedToken.id.toString())
 
 		if (!fridgeUser) {
 			return response.status(401).send({ error: 'Not authorised' })

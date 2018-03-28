@@ -1,6 +1,7 @@
 const usersRouter = require('express').Router()
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 usersRouter.get('/', async (request, response) => {
 	try {
@@ -39,6 +40,44 @@ usersRouter.post('/', async (request, response) => {
 		const saved = await user.save()
 
 		response.status(201).json(User.format(saved))
+	} catch (exception) {
+		console.log(exception)
+		response.status(500).send({ error: 'Something went wrong' })
+	}
+})
+
+usersRouter.put('/:id', async (request, response) => {
+	try {
+		const token = request.token
+		const decodedToken = jwt.verify(token, process.env.SECRET)
+
+		if (!token || !decodedToken.id) {
+			return response.status(401).send({ error: 'Missing or invalid token' })
+		}
+
+		const body = request.body
+		const oldUser = await User.findById(request.params.id)
+
+		if (!oldUser) {
+			return response.status(400).send({ error: `Malformatted id: ${request.params.id}` })
+		}
+
+		if (oldUser._id.toString() !== decodedToken.id.toString()) {
+			return response.status(401).send({ error: 'Not authorised' })
+		}
+
+		const updatedUser = {
+			name: body.name,
+			username: body.username,
+			passwordHash: oldUser.passwordHash,
+			fridges: oldUser.fridges,
+			defaultFridge: body.defaultFridge
+		}
+
+		const options = { new: true }
+		const newUser = await User.findByIdAndUpdate(oldUser._id, updatedUser, options)
+
+		response.status(200).json(User.format(newUser))
 	} catch (exception) {
 		console.log(exception)
 		response.status(500).send({ error: 'Something went wrong' })

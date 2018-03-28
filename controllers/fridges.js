@@ -15,6 +15,23 @@ fridgeRouter.get('/', async (request, response) => {
 	}
 })
 
+fridgeRouter.get('/user/:id', async (request, response) => {
+	try {
+		const user = await User.findById(request.params.id)
+
+		if (!user) {
+			return response.status(400).send({ error: `Malformatted id: ${request.params.id}` })
+		}
+
+		const fridges = await Fridge.find({ _id: {$in: user.fridges } })
+
+		response.status(200).json(fridges.map(Fridge.format))
+	} catch (exception) {
+		console.log(exception)
+		response.status(500).send({ error: 'Something went wrong' })
+	}
+})
+
 fridgeRouter.post('/', async (request, response) => {
 	try {
 		const token = request.token
@@ -34,6 +51,11 @@ fridgeRouter.post('/', async (request, response) => {
 
 		const saved = await fridge.save()
 		user.fridges = user.fridges.concat(saved._id)
+
+		if (!user.defaultFridge) {
+			user.defaultFridge = fridge._id
+		}
+
 		await user.save()
 
 		response.status(201).json(Fridge.format(saved))		
@@ -66,6 +88,11 @@ fridgeRouter.delete('/:id', async (request, response) => {
 		toBeRemoved.users.forEach(async (u) => {
 			const user = await User.findById(u)
 			user.fridges = user.fridges.filter(f => f.toString() !== toBeRemoved._id.toString())
+
+			if (user.defaultFridge.toString() === toBeRemoved._id.toString()) {
+				user.defaultFridge = null
+			}
+
 			await user.save()
 		})
 
